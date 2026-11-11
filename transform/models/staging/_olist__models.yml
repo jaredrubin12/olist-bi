@@ -31,3 +31,106 @@ models:
         description: When the customer received the order. Null if not yet delivered.
       - name: estimated_delivery_date
         description: Delivery date promised to the customer at purchase. Compare with delivered_to_customer_at for on-time rate.
+
+  - name: stg_olist__order_items
+    description: One row per item within an order. Grain is order_id + order_item_id.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [order_id, order_item_id]
+    columns:
+      - name: order_id
+        description: Foreign key to orders.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+      - name: order_item_id
+        description: Item sequence number within the order (1, 2, 3…).
+        data_tests:
+          - not_null
+      - name: product_id
+        description: Foreign key to products.
+        data_tests:
+          - not_null
+      - name: seller_id
+        description: Foreign key to sellers.
+        data_tests:
+          - not_null
+      - name: item_price
+        description: Item price in BRL, excluding freight.
+        data_tests:
+          - not_null
+      - name: freight_value
+        description: Shipping cost allocated to this item, in BRL.
+      - name: shipping_deadline_at
+        description: Deadline for the seller to hand the item to the carrier.
+
+  - name: stg_olist__order_payments
+    description: One row per payment against an order. Grain is order_id + payment_sequential.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [order_id, payment_sequential]
+    columns:
+      - name: order_id
+        description: Foreign key to orders.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+      - name: payment_sequential
+        description: Payment sequence number within the order.
+      - name: payment_type
+        description: How the customer paid. not_defined is a known, accepted value (DQ-7).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [credit_card, boleto, voucher, debit_card, not_defined]
+      - name: payment_installments
+        description: Number of installments the payment is split into.
+      - name: payment_value
+        description: Amount paid in BRL.
+        data_tests:
+          - not_null
+
+  - name: stg_olist__order_reviews
+    description: >
+      One row per review per order. Grain is review_id + order_id, because
+      review_id alone is not unique (DQ-1).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [review_id, order_id]
+    columns:
+      - name: review_id
+        description: Survey response ID. Not unique on its own.
+        data_tests:
+          - not_null
+      - name: order_id
+        description: Foreign key to orders.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+      - name: review_score
+        description: Rating from 1 (worst) to 5 (best).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+      - name: review_title
+        description: Optional comment title (Portuguese). Mostly null.
+      - name: review_message
+        description: Optional comment text (Portuguese).
+      - name: survey_sent_at
+        description: When the satisfaction survey was sent to the customer.
+      - name: survey_answered_at
+        description: When the customer answered the survey.
