@@ -13,6 +13,10 @@ models:
         description: Foreign key to customers (per-order ID, see DQ-5).
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__customers')
+                field: customer_id
       - name: order_status
         description: Current lifecycle status of the order.
         data_tests:
@@ -55,10 +59,18 @@ models:
         description: Foreign key to products.
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__products')
+                field: product_id
       - name: seller_id
         description: Foreign key to sellers.
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__sellers')
+                field: seller_id
       - name: item_price
         description: Item price in BRL, excluding freight.
         data_tests:
@@ -134,3 +146,110 @@ models:
         description: When the satisfaction survey was sent to the customer.
       - name: survey_answered_at
         description: When the customer answered the survey.
+
+  - name: stg_olist__customers
+    description: >
+      One row per customer_id. Note customer_id is created per order (DQ-5);
+      use customer_unique_id to count people or find repeat buyers.
+    columns:
+      - name: customer_id
+        description: Primary key. Links to orders.
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_unique_id
+        description: The actual person. Repeats across that person's orders.
+        data_tests:
+          - not_null
+      - name: zip_code_prefix
+        description: First 5 digits of the customer's zip code (text, keeps leading zeros).
+      - name: city
+        description: Customer city (lowercase, as in source).
+      - name: state
+        description: Two-letter Brazilian state code (UF).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO]
+
+  - name: stg_olist__sellers
+    description: One row per seller on the marketplace.
+    columns:
+      - name: seller_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: zip_code_prefix
+        description: First 5 digits of the seller's zip code.
+      - name: city
+        description: Seller city.
+      - name: state
+        description: Two-letter Brazilian state code (UF).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO]
+
+  - name: stg_olist__products
+    description: One row per product. Category is Portuguese; English name is added downstream (DQ-3).
+    columns:
+      - name: product_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: category_name_pt
+        description: Category in Portuguese. Null for 610 products (DQ-3).
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_olist__product_category_translations')
+                field: category_name_pt
+              config:
+                severity: warn  # known gap: 2 categories lack a translation (DQ-3)
+      - name: name_length
+        description: Character count of the product name on the listing.
+      - name: description_length
+        description: Character count of the product description.
+      - name: photo_count
+        description: Number of product photos on the listing.
+      - name: weight_g
+        description: Weight in grams.
+      - name: length_cm
+        description: Package length in cm.
+      - name: height_cm
+        description: Package height in cm.
+      - name: width_cm
+        description: Package width in cm.
+
+  - name: stg_olist__product_category_translations
+    description: Lookup from Portuguese to English category names.
+    columns:
+      - name: category_name_pt
+        description: Primary key (Portuguese name).
+        data_tests:
+          - unique
+          - not_null
+      - name: category_name_en
+        description: English category name.
+        data_tests:
+          - not_null
+
+  - name: stg_olist__geolocation
+    description: >
+      Coordinates by zip-code prefix. Multiple rows per prefix (DQ-2): never
+      join to this directly; use the per-prefix intermediate model.
+    columns:
+      - name: zip_code_prefix
+        description: First 5 digits of a Brazilian zip code. NOT unique in this model.
+        data_tests:
+          - not_null
+      - name: latitude
+        description: Latitude in decimal degrees.
+      - name: longitude
+        description: Longitude in decimal degrees.
+      - name: city
+        description: City name (inconsistent spelling/accents in source).
+      - name: state
+        description: Two-letter Brazilian state code (UF).
