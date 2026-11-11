@@ -79,3 +79,32 @@ identity.
   lng −74 to −34.7) before averaging. 5 zips have no valid point left and
   drop out, so their customers/sellers get null coordinates (same as DQ-4).
 - **Test:** Enforced in `int_geolocation__by_zip`. Found during Phase 4 design.
+
+### DQ-9: Order timestamps out of sequence (1,359 + 23 orders)
+
+- **What:** 1,359 orders were handed to the carrier before payment approval
+  (median 17 hours earlier). 23 orders were delivered to the customer before
+  the carrier pickup (up to 16 days earlier).
+- **Risk:** Any metric built on approval → carrier → customer stage durations
+  would include negative times.
+- **Decision:** Keep the rows. No current metric uses the approval or carrier
+  timestamps; delivery metrics measure purchase → customer, which is always valid.
+- **Test:** `expression_is_true` with **warn at the current count, error if it grows**
+  (`orders_carrier_after_approval` > 1,359; `orders_customer_after_carrier` > 23).
+
+### DQ-10: Order status and delivery date disagree (8 + 6 orders)
+
+- **What:** 8 orders are `delivered` with no delivery date. 6 `canceled`
+  orders have a delivery date.
+- **Risk:** Counting "has a delivery date" as delivered would put canceled
+  orders into the on-time rate.
+- **Decision:** `is_delivered` = status is `delivered` **and** a delivery date
+  exists. Both groups are excluded from delivery metrics.
+- **Test:** `expression_is_true`, warn at current count, error if it grows (> 8, > 6).
+
+## Business-rule tests that must never fail
+
+These currently pass with zero violations and fail the build if broken:
+delivery after purchase, approval after purchase, estimate after purchase,
+revenue ≥ 0, item price > 0, freight ≥ 0, payment value ≥ 0, review answered
+after survey sent.

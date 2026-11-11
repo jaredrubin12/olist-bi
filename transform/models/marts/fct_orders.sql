@@ -80,7 +80,7 @@ joined as (
 
 ),
 
-final as (
+with_flags as (
 
     select
         *,
@@ -90,17 +90,31 @@ final as (
         items_value + freight_value                             as order_value,
         payment_total - (items_value + freight_value)           as payment_vs_order_diff,
 
-        -- delivery
-        delivered_to_customer_at is not null                    as is_delivered,
-        date_diff('day', purchased_at, delivered_to_customer_at) as days_to_deliver,
-        date_diff('day', estimated_delivery_date,
-                  cast(delivered_to_customer_at as date))       as days_late,   -- negative = early
-        case
-            when delivered_to_customer_at is null then null
-            else cast(delivered_to_customer_at as date) <= estimated_delivery_date
-        end                                                     as is_on_time
+        -- delivered = status says so AND we have a date to measure (DQ-10)
+        order_status = 'delivered'
+            and delivered_to_customer_at is not null            as is_delivered
 
     from joined
+
+),
+
+final as (
+
+    select
+        *,
+
+        -- delivery metrics only for delivered orders; null otherwise
+        case when is_delivered then
+            date_diff('day', purchased_at, delivered_to_customer_at)
+        end                                                     as days_to_deliver,
+        case when is_delivered then
+            date_diff('day', estimated_delivery_date, cast(delivered_to_customer_at as date))
+        end                                                     as days_late,   -- negative = early
+        case when is_delivered then
+            cast(delivered_to_customer_at as date) <= estimated_delivery_date
+        end                                                     as is_on_time
+
+    from with_flags
 
 )
 

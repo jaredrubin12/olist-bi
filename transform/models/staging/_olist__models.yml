@@ -83,6 +83,10 @@ models:
   - name: stg_olist__order_payments
     description: One row per payment against an order. Grain is order_id + payment_sequential.
     data_tests:
+      - dbt_utils.expression_is_true:
+          name: payments_value_not_negative
+          arguments:
+            expression: "payment_value >= 0"
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [order_id, payment_sequential]
@@ -115,6 +119,10 @@ models:
       One row per review per order. Grain is review_id + order_id, because
       review_id alone is not unique (DQ-1).
     data_tests:
+      - dbt_utils.expression_is_true:
+          name: reviews_answered_after_sent
+          arguments:
+            expression: "survey_answered_at >= survey_sent_at"
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [review_id, order_id]

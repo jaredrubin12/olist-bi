@@ -96,7 +96,7 @@ Details and decisions are in [data-quality-findings.md](data-quality-findings.md
 | `primary_payment_type` | credit_card, boleto, voucher, debit_card, not_defined |
 | `max_installments` | Most installments used on any payment |
 | `review_score` | Latest review, 1–5 (blank if none) |
-| `is_delivered` | True if the customer received it |
+| `is_delivered` | True if status is delivered **and** a delivery date was recorded |
 | `days_to_deliver` | Days from purchase to delivery |
 | `days_late` | Days after the promised date (negative = early) |
 | `is_on_time` | Delivered by the promised date (blank if not delivered) |

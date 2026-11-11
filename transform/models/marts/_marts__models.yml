@@ -70,6 +70,54 @@ models:
     description: >
       One row per order, including canceled ones. For agreed metrics, filter
       on is_countable for Orders and sum revenue for Revenue (docs/data-model.md).
+    data_tests:
+      # --- business rules that must never break (fail the build) ---
+      - dbt_utils.expression_is_true:
+          name: orders_delivered_after_purchase
+          arguments:
+            expression: "delivered_to_customer_at >= purchased_at"
+      - dbt_utils.expression_is_true:
+          name: orders_approved_after_purchase
+          arguments:
+            expression: "approved_at >= purchased_at"
+      - dbt_utils.expression_is_true:
+          name: orders_estimate_after_purchase
+          arguments:
+            expression: "estimated_delivery_date >= purchase_date"
+      - dbt_utils.expression_is_true:
+          name: orders_revenue_not_negative
+          arguments:
+            expression: "revenue >= 0"
+
+      # --- known source issues: warn at today's count, fail if it grows ---
+      - dbt_utils.expression_is_true:
+          name: orders_carrier_after_approval
+          arguments:
+            expression: "delivered_to_carrier_at >= approved_at"
+          config:
+            warn_if: ">0"
+            error_if: ">1359"  # DQ-9
+      - dbt_utils.expression_is_true:
+          name: orders_customer_after_carrier
+          arguments:
+            expression: "delivered_to_customer_at >= delivered_to_carrier_at"
+          config:
+            warn_if: ">0"
+            error_if: ">23"  # DQ-9
+      - dbt_utils.expression_is_true:
+          name: orders_delivered_status_has_date
+          arguments:
+            expression: "order_status != 'delivered' or delivered_to_customer_at is not null"
+          config:
+            warn_if: ">0"
+            error_if: ">8"  # DQ-10
+      - dbt_utils.expression_is_true:
+          name: orders_delivery_date_has_delivered_status
+          arguments:
+            expression: "delivered_to_customer_at is null or order_status = 'delivered'"
+          config:
+            warn_if: ">0"
+            error_if: ">6"  # DQ-10
     columns:
       - name: order_id
         description: Primary key.
@@ -117,17 +165,27 @@ models:
       - name: review_score
         description: Latest review score, 1–5. Null if no review.
       - name: is_delivered
-        description: True if the order has a customer delivery date.
+        description: True if status is delivered AND a delivery date exists (DQ-10). Basis for delivery metrics.
+        data_tests:
+          - not_null
       - name: days_to_deliver
-        description: Days from purchase to customer delivery.
+        description: Days from purchase to customer delivery. Null if not delivered.
       - name: days_late
-        description: Delivery date minus estimated date, in days. Negative = early.
+        description: Delivery date minus estimated date, in days. Negative = early. Null if not delivered.
       - name: is_on_time
         description: Delivered on or before the estimated date. Null if not delivered. Defines the On-time rate metric.
 
   - name: fct_order_items
     description: One row per item within an order. Use for product, category and seller analysis.
     data_tests:
+      - dbt_utils.expression_is_true:
+          name: items_price_positive
+          arguments:
+            expression: "item_price > 0"
+      - dbt_utils.expression_is_true:
+          name: items_freight_not_negative
+          arguments:
+            expression: "freight_value >= 0"
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [order_id, order_item_id]
