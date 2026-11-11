@@ -36,6 +36,15 @@ technical complexity.
   Remind them to run `use olist;` first in each notebook (or write tables as
   olist.raw.<table>), and to press Enter to close it before running load scripts or dbt.
 
+- "open the docs": dbt docs server also runs until stopped, so reply with:
+  ```
+  cd C:\Users\mjrub\projects\olist-bi\transform
+  ..\.venv\Scripts\Activate.ps1
+  dbt docs generate
+  dbt docs serve
+  ```
+  It opens http://localhost:8080. Ctrl+C stops it. It doesn't lock the database.
+
 ## Folder layout
 - data/raw/: the 9 Olist CSVs. Never modified, never committed.
 - warehouse/: DuckDB database file (git-ignored).
