@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: dim_dates
+    description: One row per calendar day, 2016-01-01 to 2018-12-31.
+    columns:
+      - name: date_day
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: day_of_week
+        description: ISO day of week, 1 = Monday … 7 = Sunday.
+      - name: is_weekend
+        description: True on Saturday and Sunday.
+
+  - name: dim_products
+    description: One row per product, with a never-null readable category (DQ-3).
+    columns:
+      - name: product_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: category
+        description: English category name, else Portuguese, else 'unknown'. Use this in reports.
+        data_tests:
+          - not_null
+      - name: category_name_pt
+        description: Original Portuguese category (null for 610 products).
+
+  - name: dim_sellers
+    description: One row per seller, with location for maps.
+    columns:
+      - name: seller_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: latitude
+        description: Zip-level latitude. Null where unknown (DQ-4, DQ-8).
+      - name: longitude
+        description: Zip-level longitude. Null where unknown (DQ-4, DQ-8).
+
+  - name: dim_customers
+    description: >
+      One row per real person (customer_unique_id), DQ-5. Location is from the
+      person's most recent order. Order history counts only countable orders
+      (all except canceled/unavailable, per docs/data-model.md).
+    columns:
+      - name: customer_unique_id
+        description: Primary key. The actual person.
+        data_tests:
+          - unique
+          - not_null
+      - name: first_order_at
+        description: First countable order. Null if the person only has canceled/unavailable orders.
+      - name: last_order_at
+        description: Most recent countable order.
+      - name: lifetime_orders
+        description: Number of countable orders.
+        data_tests:
+          - not_null
+      - name: is_repeat_customer
+        description: True if the person has 2 or more countable orders.
+        data_tests:
+          - not_null
