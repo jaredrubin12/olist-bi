@@ -70,3 +70,12 @@ identity.
 - **Decision:** Keep the rows. The `accepted_values` test lists `not_defined`
   explicitly, so any new unexpected type fails.
 - **Test:** `accepted_values` on `payment_type`.
+
+### DQ-8: Geolocation points outside Brazil (42 rows, 21 zip prefixes)
+
+- **What:** Some coordinates fall far outside Brazil (latitudes up to 45°, longitudes up to 121°).
+- **Risk:** Averaging them into a zip's location moves it off the map.
+- **Decision:** Exclude points outside Brazil's bounding box (lat −34 to 5.3,
+  lng −74 to −34.7) before averaging. 5 zips have no valid point left and
+  drop out, so their customers/sellers get null coordinates (same as DQ-4).
+- **Test:** Enforced in `int_geolocation__by_zip`. Found during Phase 4 design.

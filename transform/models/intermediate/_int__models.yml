@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: int_geolocation__by_zip
+    description: >
+      One row per zip-code prefix with averaged coordinates (DQ-2). Points
+      outside Brazil are excluded first (DQ-8). Join customers and sellers
+      to this, never to stg_olist__geolocation.
+    columns:
+      - name: zip_code_prefix
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: latitude
+        description: Mean latitude of valid source points.
+      - name: longitude
+        description: Mean longitude of valid source points.
+      - name: state
+        description: Most common state code among the source points.
+      - name: source_point_count
+        description: Number of valid source rows averaged.
+
+  - name: int_orders__items_agg
+    description: Order items rolled up to one row per order.
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: item_count
+        description: Number of items in the order.
+      - name: product_count
+        description: Number of distinct products.
+      - name: seller_count
+        description: Number of distinct sellers fulfilling the order.
+      - name: items_value
+        description: Sum of item prices (BRL), excluding freight. Basis for Revenue.
+      - name: freight_value
+        description: Sum of freight charges (BRL).
+
+  - name: int_orders__payments_agg
+    description: Payments rolled up to one row per order.
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: payment_total
+        description: Total amount paid (BRL), across all payment methods.
+      - name: payment_count
+        description: Number of payment records.
+      - name: primary_payment_type
+        description: Payment method that covered the largest amount.
+      - name: max_installments
+        description: Highest installment count among the order's payments.
+
+  - name: int_orders__latest_review
+    description: One review per order, the most recently answered (DQ-1).
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: review_id
+        description: ID of the selected review.
+      - name: review_score
+        description: Rating from 1 to 5.
+      - name: review_count
+        description: Total reviews the order had before deduplication.
