@@ -1,0 +1,6 @@
+# The dbt-built DuckDB warehouse. Path is relative to this folder.
+# Dashboards read only the marts (fct_ / dim_ tables), never raw or staging.
+name: olist
+type: duckdb
+options:
+  filename: ../../../warehouse/olist.duckdb

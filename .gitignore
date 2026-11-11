@@ -19,10 +19,7 @@ transform/dbt_packages/
 transform/logs/
 logs/
 
-# Evidence / Node
-dashboards/node_modules/
-dashboards/.evidence/
-dashboards/build/
+# Evidence / Node (dashboards/.gitignore covers Evidence's generated folders)
 node_modules/
 
 # Secrets and local settings
