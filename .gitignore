@@ -1,0 +1,35 @@
+# Raw data: large, and re-downloadable from Kaggle
+data/raw/*
+!data/raw/.gitkeep
+
+# DuckDB warehouse files
+warehouse/*.duckdb
+warehouse/*.duckdb.wal
+*.duckdb
+*.duckdb.wal
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# dbt build artifacts
+transform/target/
+transform/dbt_packages/
+transform/logs/
+logs/
+
+# Evidence / Node
+dashboards/node_modules/
+dashboards/.evidence/
+dashboards/build/
+node_modules/
+
+# Secrets and local settings
+.env
+.user.yml
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+.vscode/

@@ -1,0 +1,5 @@
+# Pinned so local and CI environments match exactly.
+# Install with: pip install -r requirements.txt
+dbt-core==1.12.6
+dbt-duckdb==1.11.1
+duckdb==2.0.0
