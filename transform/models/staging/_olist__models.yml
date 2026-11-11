@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: stg_olist__orders
+    description: One row per order, with clean column names and explicit types.
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: Foreign key to customers (per-order ID, see DQ-5).
+        data_tests:
+          - not_null
+      - name: order_status
+        description: Current lifecycle status of the order.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [created, approved, invoiced, processing, shipped, delivered, canceled, unavailable]
+      - name: purchased_at
+        description: When the customer placed the order.
+        data_tests:
+          - not_null
+      - name: approved_at
+        description: When payment was approved. Null if never approved.
+      - name: delivered_to_carrier_at
+        description: When the seller handed the order to the logistics carrier.
+      - name: delivered_to_customer_at
+        description: When the customer received the order. Null if not yet delivered.
+      - name: estimated_delivery_date
+        description: Delivery date promised to the customer at purchase. Compare with delivered_to_customer_at for on-time rate.

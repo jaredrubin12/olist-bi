@@ -1,0 +1,9 @@
+# Connection settings. Kept in the repo (it has no secrets) so CI can use it.
+# The path is relative to this folder: run dbt from transform/.
+olist:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../warehouse/olist.duckdb
+      threads: 4

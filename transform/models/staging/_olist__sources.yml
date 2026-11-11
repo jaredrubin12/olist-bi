@@ -1,0 +1,90 @@
+version: 2
+
+sources:
+  - name: olist
+    description: >
+      Raw Olist Brazilian e-commerce data (~100k orders, Sep 2016 – Oct 2018),
+      loaded untouched from the Kaggle CSVs by scripts/load_raw.py.
+      Known quality issues are documented in docs/data-quality-findings.md.
+    schema: raw
+
+    tables:
+      - name: orders
+        description: One row per order, with status and lifecycle timestamps (purchase → approval → carrier → customer).
+        columns:
+          - name: order_id
+            description: Primary key.
+          - name: customer_id
+            description: >
+              Foreign key to customers. Unique per order, not per person
+              (see DQ-5); use customers.customer_unique_id to identify people.
+
+      - name: order_items
+        description: One row per item within an order. An order with 3 items has 3 rows.
+        columns:
+          - name: order_id
+            description: Foreign key to orders. Part of the primary key.
+          - name: order_item_id
+            description: Item sequence number within the order (1, 2, 3…). Part of the primary key.
+          - name: price
+            description: Item price in BRL, excluding freight.
+          - name: freight_value
+            description: Shipping cost allocated to this item, in BRL.
+
+      - name: order_payments
+        description: One row per payment against an order. Orders can be split across several payments (e.g. card + voucher).
+        columns:
+          - name: order_id
+            description: Foreign key to orders. Part of the primary key.
+          - name: payment_sequential
+            description: Payment sequence number within the order. Part of the primary key.
+          - name: payment_type
+            description: credit_card, boleto, voucher, debit_card, or not_defined (see DQ-7).
+
+      - name: order_reviews
+        description: Customer satisfaction survey responses, sent after delivery or estimated delivery date.
+        columns:
+          - name: review_id
+            description: >
+              Survey response ID. NOT unique on its own; some reviews are
+              linked to multiple orders (see DQ-1). Key is review_id + order_id.
+          - name: review_score
+            description: Rating from 1 (worst) to 5 (best).
+
+      - name: customers
+        description: One row per customer_id (i.e. per order). Contains the real person identifier and location.
+        columns:
+          - name: customer_id
+            description: Primary key. Links to orders.
+          - name: customer_unique_id
+            description: Identifies the actual person across orders. Use this for customer counts and repeat-purchase metrics.
+
+      - name: sellers
+        description: One row per seller on the Olist marketplace.
+        columns:
+          - name: seller_id
+            description: Primary key.
+
+      - name: products
+        description: One row per product, with Portuguese category name and physical attributes.
+        columns:
+          - name: product_id
+            description: Primary key.
+          - name: product_category_name
+            description: Category in Portuguese. Null for 610 products (see DQ-3).
+
+      - name: product_category_name_translation
+        description: Lookup from Portuguese to English category names. Missing a few categories (see DQ-3).
+        columns:
+          - name: product_category_name
+            description: Primary key (Portuguese name).
+          - name: product_category_name_english
+            description: English category name.
+
+      - name: geolocation
+        description: >
+          Latitude/longitude by zip-code prefix. Has ~50 rows per prefix (see DQ-2).
+          Never join to it directly; aggregate to one row per prefix first.
+        columns:
+          - name: geolocation_zip_code_prefix
+            description: First 5 digits of a Brazilian zip code. Not unique.

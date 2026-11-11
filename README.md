@@ -4,7 +4,7 @@ A portfolio project that takes raw e-commerce data from CSV files to tested,
 documented models and interactive dashboards. It uses open-source tools and
 runs entirely on a laptop.
 
-> **Status:** Phase 1 of 8 (setup). See [Roadmap](#roadmap).
+> **Status:** Phase 3 of 8 (staging layer). See [Roadmap](#roadmap).
 
 ## The business
 
@@ -57,7 +57,7 @@ More steps will be added as the project grows.
 ## Roadmap
 
 - [x] **1. Setup:** repo, environment, structure
-- [ ] **2. Ingest & explore:** load CSVs into DuckDB, profile data quality
+- [x] **2. Ingest & explore:** load CSVs into DuckDB, profile data quality ([findings](docs/data-quality-findings.md))
 - [ ] **3. Staging layer:** dbt sources, staging models, basic tests
 - [ ] **4. Dimensional model:** star schema marts
 - [ ] **5. Data quality:** deeper tests, dbt docs, data dictionary

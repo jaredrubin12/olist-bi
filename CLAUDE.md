@@ -45,6 +45,8 @@ technical complexity.
 - .github/workflows/: CI.
 
 ## Conventions
+- Run dbt from transform/ (profiles.yml lives there; DB path is relative to it).
+  Close the DuckDB UI first, or dbt can't get write access to the database.
 - dbt layers: staging (stg_) → intermediate (int_) → marts (fct_, dim_).
 - Every model gets a description in YAML. Every primary key gets unique + not_null tests.
 - Significant design choices get a short decision record in docs/decisions/.
@@ -52,8 +54,8 @@ technical complexity.
 
 ## Phased plan
 1. Setup: repo, env, folders, docs skeleton  ✓ done
-2. Ingest & explore: load CSVs into DuckDB, profile the data  ← current
-3. Staging layer: dbt sources, staging models, basic tests
+2. Ingest & explore: load CSVs into DuckDB, profile the data  ✓ done
+3. Staging layer: dbt sources, staging models, basic tests  ← current
 4. Dimensional model: intermediate + marts (star schema)
 5. Data quality: deeper tests, dbt docs, data dictionary
 6. Dashboards: Evidence pages (exec KPIs, sales, delivery, reviews)
