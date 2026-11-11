@@ -44,6 +44,18 @@ technical complexity.
   dbt docs serve
   ```
   It opens http://localhost:8080. Ctrl+C stops it. It doesn't lock the database.
+- "open the dashboards": Evidence dev server also runs until stopped, so reply with:
+  ```
+  cd C:\Users\mjrub\projects\olist-bi\dashboards
+  npm run sources
+  npm run dev
+  ```
+  It opens http://localhost:3000. Ctrl+C stops it. Run `npm run sources` again after any dbt build.
+
+## Windows gotchas
+- Never write JSON/config files with Windows PowerShell 5.1 (Set-Content / ConvertTo-Json):
+  it adds a UTF-8 BOM that breaks Vite/Evidence. Use the Write tool or Node.
+- Commit messages containing double quotes: use `git commit -F <file>`.
 
 ## Folder layout
 - data/raw/: the 9 Olist CSVs. Never modified, never committed.
