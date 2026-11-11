@@ -65,3 +65,112 @@ models:
         description: True if the person has 2 or more countable orders.
         data_tests:
           - not_null
+
+  - name: fct_orders
+    description: >
+      One row per order, including canceled ones. For agreed metrics, filter
+      on is_countable for Orders and sum revenue for Revenue (docs/data-model.md).
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_unique_id
+        description: The person who placed the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_unique_id
+      - name: purchase_date
+        description: Date the order was placed.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_dates')
+                field: date_day
+      - name: is_countable
+        description: True for every status except canceled and unavailable. Defines the Orders metric.
+        data_tests:
+          - not_null
+      - name: items_value
+        description: Sum of item prices (BRL), all statuses. 0 if no items.
+      - name: freight_value
+        description: Sum of freight (BRL). 0 if no items.
+      - name: revenue
+        description: Agreed Revenue. items_value on countable orders, else 0. Excludes freight.
+        data_tests:
+          - not_null
+      - name: order_value
+        description: items_value + freight_value. What the customer was charged.
+      - name: payment_total
+        description: Total paid (BRL). Null for the 1 order with no payment record.
+      - name: payment_vs_order_diff
+        description: payment_total − order_value. Non-zero for ~249 orders; kept for reconciliation.
+      - name: primary_payment_type
+        description: Payment method covering the largest amount.
+      - name: has_review
+        description: True if the order has at least one review.
+      - name: review_score
+        description: Latest review score, 1–5. Null if no review.
+      - name: is_delivered
+        description: True if the order has a customer delivery date.
+      - name: days_to_deliver
+        description: Days from purchase to customer delivery.
+      - name: days_late
+        description: Delivery date minus estimated date, in days. Negative = early.
+      - name: is_on_time
+        description: Delivered on or before the estimated date. Null if not delivered. Defines the On-time rate metric.
+
+  - name: fct_order_items
+    description: One row per item within an order. Use for product, category and seller analysis.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [order_id, order_item_id]
+    columns:
+      - name: order_id
+        description: Foreign key to fct_orders.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: product_id
+        description: Foreign key to dim_products.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: seller_id
+        description: Foreign key to dim_sellers.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_sellers')
+                field: seller_id
+      - name: customer_unique_id
+        description: Foreign key to dim_customers.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_unique_id
+      - name: purchase_date
+        description: Foreign key to dim_dates.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_dates')
+                field: date_day
+      - name: item_price
+        description: Item price (BRL), excluding freight.
+      - name: revenue
+        description: Agreed Revenue. item_price on countable orders, else 0.
+        data_tests:
+          - not_null
