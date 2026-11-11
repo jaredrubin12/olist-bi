@@ -66,7 +66,7 @@ technical complexity.
 2. Ingest & explore: load CSVs into DuckDB, profile the data  ✓ done
 3. Staging layer: dbt sources, staging models, basic tests  ✓ done
 4. Dimensional model: intermediate + marts (star schema)  ✓ done
-5. Data quality: deeper tests, dbt docs, data dictionary  ← current
-6. Dashboards: Evidence pages (exec KPIs, sales, delivery, reviews)
+5. Data quality: deeper tests, dbt docs, data dictionary  ✓ done
+6. Dashboards: Evidence pages (exec KPIs, sales, delivery, reviews)  ← current
 7. CI/CD: GitHub Actions on every PR
 8. Portfolio polish: architecture diagram, decision records, README, deployment

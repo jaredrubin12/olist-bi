@@ -1,0 +1,8 @@
+# Store and check out text files with LF line endings on every OS,
+# so Windows, macOS, Linux and CI all see identical files.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
