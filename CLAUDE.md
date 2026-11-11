@@ -25,6 +25,17 @@ technical complexity.
 - Windows, PowerShell. Python 3.13 virtual env in .venv (activate: .venv\Scripts\Activate.ps1).
 - Exact package versions are pinned in requirements.txt.
 
+## Shortcuts
+- "open the db": the DuckDB UI must run in the owner's own terminal (it waits for
+  Enter to stop), so reply with these commands to paste:
+  ```
+  cd C:\Users\mjrub\projects\olist-bi
+  .venv\Scripts\Activate.ps1
+  python scripts/explore.py
+  ```
+  Remind them to run `use olist;` first in each notebook (or write tables as
+  olist.raw.<table>), and to press Enter to close it before running load scripts or dbt.
+
 ## Folder layout
 - data/raw/: the 9 Olist CSVs. Never modified, never committed.
 - warehouse/: DuckDB database file (git-ignored).
@@ -40,8 +51,8 @@ technical complexity.
 - SQL style: lowercase keywords, CTEs over subqueries, one model per file.
 
 ## Phased plan
-1. Setup: repo, env, folders, docs skeleton  ← current
-2. Ingest & explore: load CSVs into DuckDB, profile the data
+1. Setup: repo, env, folders, docs skeleton  ✓ done
+2. Ingest & explore: load CSVs into DuckDB, profile the data  ← current
 3. Staging layer: dbt sources, staging models, basic tests
 4. Dimensional model: intermediate + marts (star schema)
 5. Data quality: deeper tests, dbt docs, data dictionary
